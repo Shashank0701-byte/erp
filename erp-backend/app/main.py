@@ -5,7 +5,11 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 import logging
 
-# Import routers (will be created)
+# Import middleware
+from app.middleware.tenant import TenantMiddleware, TenantIsolationMiddleware
+
+# Import routers
+from app.routers import example_tenant
 # from app.routers import auth, users, finance, inventory, hr, sales
 
 # Configure logging
@@ -39,13 +43,18 @@ async def lifespan(app: FastAPI):
 # Create FastAPI application
 app = FastAPI(
     title="ERP Backend API",
-    description="Enterprise Resource Planning System Backend API with RBAC",
+    description="Enterprise Resource Planning System Backend API with RBAC and Multi-Tenancy",
     version="1.0.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
     lifespan=lifespan
 )
+
+
+# Tenant Middleware (add before CORS)
+app.add_middleware(TenantIsolationMiddleware)
+app.add_middleware(TenantMiddleware)
 
 
 # CORS Middleware Configuration
@@ -93,7 +102,8 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "ERP Backend API",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "features": ["RBAC", "Multi-Tenancy", "JWT Auth"]
     }
 
 
@@ -107,11 +117,19 @@ async def root():
         "message": "ERP Backend API",
         "version": "1.0.0",
         "docs": "/api/docs",
-        "health": "/health"
+        "health": "/health",
+        "features": {
+            "authentication": "JWT with RBAC",
+            "multi_tenancy": "Header, Subdomain, Path, JWT",
+            "modules": ["Finance", "Inventory", "HR", "Sales"]
+        }
     }
 
 
-# Include routers (uncomment when routers are created)
+# Include routers
+app.include_router(example_tenant.router)
+
+# Include other routers (uncomment when created)
 # app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 # app.include_router(users.router, prefix="/api/users", tags=["Users"])
 # app.include_router(finance.router, prefix="/api/finance", tags=["Finance"])
