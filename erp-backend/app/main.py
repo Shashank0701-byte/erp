@@ -1,0 +1,131 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import JSONResponse
+from contextlib import asynccontextmanager
+import logging
+
+# Import routers (will be created)
+# from app.routers import auth, users, finance, inventory, hr, sales
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Lifespan context manager for startup and shutdown events
+    """
+    # Startup
+    logger.info("Starting ERP Backend Application...")
+    # Initialize database connection
+    # await database.connect()
+    logger.info("Application started successfully")
+    
+    yield
+    
+    # Shutdown
+    logger.info("Shutting down ERP Backend Application...")
+    # Close database connection
+    # await database.disconnect()
+    logger.info("Application shutdown complete")
+
+
+# Create FastAPI application
+app = FastAPI(
+    title="ERP Backend API",
+    description="Enterprise Resource Planning System Backend API with RBAC",
+    version="1.0.0",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json",
+    lifespan=lifespan
+)
+
+
+# CORS Middleware Configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",  # Next.js frontend
+        "http://localhost:3001",
+        # Add production URLs here
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+)
+
+
+# Trusted Host Middleware (for production)
+# app.add_middleware(
+#     TrustedHostMiddleware,
+#     allowed_hosts=["localhost", "*.yourdomain.com"]
+# )
+
+
+# Global exception handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    logger.error(f"Global exception: {str(exc)}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "success": False,
+            "message": "Internal server error",
+            "details": str(exc) if app.debug else None
+        }
+    )
+
+
+# Health check endpoint
+@app.get("/health", tags=["Health"])
+async def health_check():
+    """
+    Health check endpoint
+    """
+    return {
+        "status": "healthy",
+        "service": "ERP Backend API",
+        "version": "1.0.0"
+    }
+
+
+# Root endpoint
+@app.get("/", tags=["Root"])
+async def root():
+    """
+    Root endpoint with API information
+    """
+    return {
+        "message": "ERP Backend API",
+        "version": "1.0.0",
+        "docs": "/api/docs",
+        "health": "/health"
+    }
+
+
+# Include routers (uncomment when routers are created)
+# app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+# app.include_router(users.router, prefix="/api/users", tags=["Users"])
+# app.include_router(finance.router, prefix="/api/finance", tags=["Finance"])
+# app.include_router(inventory.router, prefix="/api/inventory", tags=["Inventory"])
+# app.include_router(hr.router, prefix="/api/hr", tags=["HR"])
+# app.include_router(sales.router, prefix="/api/sales", tags=["Sales"])
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=5000,
+        reload=True,
+        log_level="info"
+    )
