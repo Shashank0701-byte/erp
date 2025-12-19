@@ -13,10 +13,11 @@ from app.utils.http_client import HTTPClient
 
 # Import middleware
 from app.middleware.tenant import TenantMiddleware, TenantIsolationMiddleware
+from app.middleware.rate_limit import RateLimitMiddleware, get_user_key, get_tenant_key
 
 # Import routers
-from app.routers import example_tenant, finance, inventory
-# from app.routers import auth, users, hr, sales
+from app.routers import example_tenant, finance, inventory, hr
+# from app.routers import auth, users, sales
 
 # Configure logging
 logging.basicConfig(
@@ -84,7 +85,41 @@ app = FastAPI(
 )
 
 
-# Tenant Middleware (add before CORS)
+# Rate Limiting Middleware (add before tenant middleware)
+rate_limiter = RateLimitMiddleware(
+    app=app.router,
+    default_limit=100,  # 100 requests per minute by default
+    default_window=60,  # 60 seconds window
+    exempt_paths=["/health", "/docs", "/redoc", "/openapi.json", "/api/docs", "/api/redoc"],
+    use_redis=False  # Set to True in production with Redis
+)
+
+# Configure HR-specific rate limits for public endpoints
+rate_limiter.add_route_limit(
+    "/api/hr/employees/public/directory",
+    requests=10,  # 10 requests
+    window=60,  # per minute
+    key_func=None  # Use default IP-based key
+)
+
+rate_limiter.add_route_limit(
+    "/api/hr/employees/public/",
+    requests=20,  # 20 requests
+    window=60,  # per minute
+    key_func=None
+)
+
+rate_limiter.add_route_limit(
+    "/api/hr/employees/public/contact",
+    requests=5,  # 5 requests
+    window=3600,  # per hour (3600 seconds)
+    key_func=None
+)
+
+app.add_middleware(RateLimitMiddleware, **rate_limiter.__dict__)
+
+
+# Tenant Middleware (add after rate limiting)
 app.add_middleware(TenantIsolationMiddleware)
 app.add_middleware(TenantMiddleware)
 
@@ -162,11 +197,11 @@ async def root():
 app.include_router(example_tenant.router)
 app.include_router(finance.router)
 app.include_router(inventory.router)
+app.include_router(hr.router)
 
 # Include other routers (uncomment when created)
 # app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 # app.include_router(users.router, prefix="/api/users", tags=["Users"])
-# app.include_router(hr.router, prefix="/api/hr", tags=["HR"])
 # app.include_router(sales.router, prefix="/api/sales", tags=["Sales"])
 
 

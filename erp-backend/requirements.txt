@@ -14,4 +14,6 @@ aioredis==2.0.1
 celery==5.4.0
 email-validator==2.2.0
 httpx==0.27.2
+slowapi==0.1.9
+
 

@@ -64,6 +64,17 @@ class Settings(BaseSettings):
     HTTP_CLIENT_MAX_CONNECTIONS: int = 100
     HTTP_CLIENT_MAX_KEEPALIVE: int = 20
     
+    # Rate Limiting
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_DEFAULT_REQUESTS: int = 100  # requests per window
+    RATE_LIMIT_DEFAULT_WINDOW: int = 60  # seconds
+    RATE_LIMIT_USE_REDIS: bool = False  # Use Redis for distributed rate limiting
+    
+    # HR Public Endpoint Rate Limits
+    RATE_LIMIT_HR_PUBLIC_DIRECTORY: int = 10  # requests per minute
+    RATE_LIMIT_HR_PUBLIC_INFO: int = 20  # requests per minute
+    RATE_LIMIT_HR_PUBLIC_CONTACT: int = 5  # requests per hour
+    
     class Config:
         env_file = ".env"
         case_sensitive = True
