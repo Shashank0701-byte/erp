@@ -54,6 +54,16 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
     
+    # Microservices URLs
+    SALES_SERVICE_URL: str = "http://localhost:5001"
+    FINANCE_SERVICE_URL: str = "http://localhost:5002"
+    HR_SERVICE_URL: str = "http://localhost:5003"
+    
+    # HTTP Client
+    HTTP_CLIENT_TIMEOUT: int = 30  # seconds
+    HTTP_CLIENT_MAX_CONNECTIONS: int = 100
+    HTTP_CLIENT_MAX_KEEPALIVE: int = 20
+    
     class Config:
         env_file = ".env"
         case_sensitive = True

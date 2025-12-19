@@ -8,6 +8,9 @@ import logging
 # Import database
 from app.database import init_db, close_db
 
+# Import HTTP client
+from app.utils.http_client import HTTPClient
+
 # Import middleware
 from app.middleware.tenant import TenantMiddleware, TenantIsolationMiddleware
 
@@ -38,12 +41,26 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Database initialization failed: {str(e)}")
     
+    # Initialize HTTP client
+    try:
+        await HTTPClient.get_client()
+        logger.info("HTTP client initialized successfully")
+    except Exception as e:
+        logger.error(f"HTTP client initialization failed: {str(e)}")
+    
     logger.info("Application started successfully")
     
     yield
     
     # Shutdown
     logger.info("Shutting down ERP Backend Application...")
+    
+    # Close HTTP client
+    try:
+        await HTTPClient.close_client()
+        logger.info("HTTP client closed")
+    except Exception as e:
+        logger.error(f"Error closing HTTP client: {str(e)}")
     
     # Close database connections
     try:
