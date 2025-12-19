@@ -5,12 +5,15 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 import logging
 
+# Import database
+from app.database import init_db, close_db
+
 # Import middleware
 from app.middleware.tenant import TenantMiddleware, TenantIsolationMiddleware
 
 # Import routers
-from app.routers import example_tenant
-# from app.routers import auth, users, finance, inventory, hr, sales
+from app.routers import example_tenant, finance
+# from app.routers import auth, users, inventory, hr, sales
 
 # Configure logging
 logging.basicConfig(
@@ -27,16 +30,28 @@ async def lifespan(app: FastAPI):
     """
     # Startup
     logger.info("Starting ERP Backend Application...")
-    # Initialize database connection
-    # await database.connect()
+    
+    # Initialize database
+    try:
+        await init_db()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {str(e)}")
+    
     logger.info("Application started successfully")
     
     yield
     
     # Shutdown
     logger.info("Shutting down ERP Backend Application...")
-    # Close database connection
-    # await database.disconnect()
+    
+    # Close database connections
+    try:
+        await close_db()
+        logger.info("Database connections closed")
+    except Exception as e:
+        logger.error(f"Error closing database: {str(e)}")
+    
     logger.info("Application shutdown complete")
 
 
@@ -128,11 +143,12 @@ async def root():
 
 # Include routers
 app.include_router(example_tenant.router)
+app.include_router(finance.router)
 
 # Include other routers (uncomment when created)
 # app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 # app.include_router(users.router, prefix="/api/users", tags=["Users"])
-# app.include_router(finance.router, prefix="/api/finance", tags=["Finance"])
+# app.include_router(inventory.router, prefix="/api/inventory", tags=["Inventory"])
 # app.include_router(inventory.router, prefix="/api/inventory", tags=["Inventory"])
 # app.include_router(hr.router, prefix="/api/hr", tags=["HR"])
 # app.include_router(sales.router, prefix="/api/sales", tags=["Sales"])
