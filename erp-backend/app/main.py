@@ -12,8 +12,8 @@ from app.database import init_db, close_db
 from app.middleware.tenant import TenantMiddleware, TenantIsolationMiddleware
 
 # Import routers
-from app.routers import example_tenant, finance
-# from app.routers import auth, users, inventory, hr, sales
+from app.routers import example_tenant, finance, inventory
+# from app.routers import auth, users, hr, sales
 
 # Configure logging
 logging.basicConfig(
@@ -144,12 +144,11 @@ async def root():
 # Include routers
 app.include_router(example_tenant.router)
 app.include_router(finance.router)
+app.include_router(inventory.router)
 
 # Include other routers (uncomment when created)
 # app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 # app.include_router(users.router, prefix="/api/users", tags=["Users"])
-# app.include_router(inventory.router, prefix="/api/inventory", tags=["Inventory"])
-# app.include_router(inventory.router, prefix="/api/inventory", tags=["Inventory"])
 # app.include_router(hr.router, prefix="/api/hr", tags=["HR"])
 # app.include_router(sales.router, prefix="/api/sales", tags=["Sales"])
 
