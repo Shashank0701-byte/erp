@@ -75,6 +75,12 @@ class Settings(BaseSettings):
     RATE_LIMIT_HR_PUBLIC_INFO: int = 20  # requests per minute
     RATE_LIMIT_HR_PUBLIC_CONTACT: int = 5  # requests per hour
     
+    # Camunda BPM Workflow Engine
+    CAMUNDA_REST_URL: str = "http://localhost:8080/engine-rest"
+    CAMUNDA_ADMIN_USER: str = "demo"
+    CAMUNDA_ADMIN_PASSWORD: str = "demo"
+    CAMUNDA_TIMEOUT: int = 30  # seconds
+    
     class Config:
         env_file = ".env"
         case_sensitive = True
