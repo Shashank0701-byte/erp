@@ -81,6 +81,14 @@ class Settings(BaseSettings):
     CAMUNDA_ADMIN_PASSWORD: str = "demo"
     CAMUNDA_TIMEOUT: int = 30  # seconds
     
+    # Kafka Event Streaming
+    KAFKA_BOOTSTRAP_SERVERS: str = "localhost:9092"
+    KAFKA_CONSUMER_GROUP: str = "sales-service-group"
+    KAFKA_INVENTORY_TOPIC: str = "inventory-events"
+    KAFKA_SALES_TOPIC: str = "sales-events"
+    KAFKA_AUTO_OFFSET_RESET: str = "earliest"  # earliest or latest
+    KAFKA_ENABLE_AUTO_COMMIT: bool = True
+    
     class Config:
         env_file = ".env"
         case_sensitive = True
